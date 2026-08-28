@@ -1,4 +1,4 @@
-"""NHPLUG 인증 및 계좌 조회 (/n2/acctinfo)."""
+"""NHPLUG 인증 및 계좌 조회 (/n2/acctinfo) — 사용자별 분리."""
 
 import logging
 from typing import Any
@@ -11,6 +11,7 @@ from app.config import (
     get_account_number,
     has_api_credentials,
 )
+from app.credentials import nhplug_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -28,13 +29,14 @@ def mask_account_no(acct_no: str) -> str:
     return acct_no[:-3] + "***"
 
 
-def authenticate() -> None:
-    """공식 SDK get_token()으로 인증 (토큰 값은 반환·로그하지 않음)."""
-    get_token()
+def authenticate_for(label: str) -> None:
+    """사용자별 get_token() (토큰 값은 반환·로그하지 않음)."""
+    with nhplug_credentials(label):
+        get_token()
 
 
-def fetch_account_list() -> list[dict[str, Any]]:
-    """POST /n2/acctinfo — 계좌 목록 조회."""
+def _fetch_account_list_unlocked() -> list[dict[str, Any]]:
+    """nhplug_credentials context 안에서 호출."""
     data = call(ACCTINFO_PATH, {})
     output_0 = data.get("Output_0", [])
 
@@ -43,6 +45,13 @@ def fetch_account_list() -> list[dict[str, Any]]:
     if isinstance(output_0, list):
         return output_0
     return []
+
+
+def fetch_account_list_for(label: str) -> list[dict[str, Any]]:
+    """사용자별 POST /n2/acctinfo."""
+    with nhplug_credentials(label):
+        get_token()
+        return _fetch_account_list_unlocked()
 
 
 def validate_acct_type(acct_type: str, *, label: str = "") -> None:
@@ -93,39 +102,50 @@ def validate_configured_account(
     return found
 
 
+def validate_account_for(label: str) -> dict[str, Any]:
+    """단일 API label: credentials → acctinfo → 해당 NH_ACCOUNT_n 검증."""
+    env_key = ENDPOINT_ACCOUNTS[label]
+    if not get_account_number(env_key):
+        raise AccountError(f"{label}: {env_key} is not configured")
+    if not has_api_credentials(label):
+        raise AccountError(f"{label}: NHPLUG credentials are not configured")
+
+    accounts = fetch_account_list_for(label)
+    return validate_configured_account(label=label, env_key=env_key, accounts=accounts)
+
+
 def validate_all_configured_accounts() -> dict[str, Any]:
-    """설정된 NH_ACCOUNT_1/2를 acctinfo와 대조 검증."""
-    targets: list[tuple[str, str]] = []
+    """API1/API2 각각 별도 credentials·acctinfo로 검증."""
+    validated: list[str] = []
+
     for label, env_key in ENDPOINT_ACCOUNTS.items():
-        if get_account_number(env_key):
-            targets.append((label, env_key))
+        if not get_account_number(env_key):
+            continue
+        if not has_api_credentials(label):
+            raise AccountError(f"{label}: NHPLUG credentials are not configured")
 
-    if not targets:
-        return {"skipped": True, "validated": 0, "count": 0}
-
-    if not has_api_credentials():
-        raise AccountError("NHPLUG API credentials are not configured")
-
-    authenticate()
-    accounts = fetch_account_list()
-
-    for label, env_key in targets:
+        accounts = fetch_account_list_for(label)
         validate_configured_account(label=label, env_key=env_key, accounts=accounts)
+        validated.append(label)
+
+    if not validated:
+        return {"skipped": True, "validated": 0, "labels": []}
 
     return {
         "skipped": False,
-        "validated": len(targets),
-        "count": len(accounts),
+        "validated": len(validated),
+        "labels": validated,
     }
 
 
 __all__ = [
     "ACCTINFO_PATH",
     "AccountError",
-    "authenticate",
-    "fetch_account_list",
+    "authenticate_for",
+    "fetch_account_list_for",
     "mask_account_no",
     "validate_acct_type",
+    "validate_account_for",
     "validate_all_configured_accounts",
     "validate_configured_account",
 ]

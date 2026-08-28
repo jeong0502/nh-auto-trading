@@ -8,6 +8,7 @@ from typing import Any
 from nhplug import NhplugError, call
 
 from app.config import DEDUP_SECONDS, get_account_number, is_dry_run
+from app.credentials import nhplug_credentials
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +198,7 @@ def execute_order(
     side: str,
     ticker: str,
     qty: int,
+    account_label: str,
     account_env_key: str,
     country_code: str | None = None,
 ) -> dict[str, Any]:
@@ -220,7 +222,8 @@ def execute_order(
 
     logger.info("[NHPLUG] calling %s", path)
     try:
-        data = call(path, input_0)
+        with nhplug_credentials(account_label):
+            data = call(path, input_0)
     except NhplugError as e:
         logger.error(
             "[NHPLUG] order failed category=%s message=%s",
@@ -294,6 +297,7 @@ def process_webhook(
         side=action,
         ticker=ticker,
         qty=qty,
+        account_label=account_label,
         account_env_key=account_env_key,
         country_code=market_info.get("country_code"),
     )

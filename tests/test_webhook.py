@@ -93,8 +93,12 @@ class TestWebhookErrors:
 
 class TestSensitiveLogging:
     def test_webhook_logs_do_not_expose_secrets(self, monkeypatch, caplog):
-        monkeypatch.setenv("NHPLUG_APP_KEY", "test_app_key_secret_value")
-        monkeypatch.setenv("NHPLUG_APP_SECRET", "test_app_secret_secret_value")
+        from tests.conftest import KEY_1, KEY_2, SECRET_1, SECRET_2
+
+        monkeypatch.setenv("NHPLUG_APP_KEY_1", KEY_1)
+        monkeypatch.setenv("NHPLUG_APP_SECRET_1", SECRET_1)
+        monkeypatch.setenv("NHPLUG_APP_KEY_2", KEY_2)
+        monkeypatch.setenv("NHPLUG_APP_SECRET_2", SECRET_2)
         monkeypatch.setenv("NH_ACCOUNT_1", "1111111111")
         monkeypatch.setenv("NH_ACCOUNT_2", "2222222222")
 
@@ -111,8 +115,8 @@ class TestSensitiveLogging:
             client.post("/webhook/api1", json=payload)
 
         log_text = caplog.text
-        assert "test_app_key_secret_value" not in log_text
-        assert "test_app_secret_secret_value" not in log_text
+        assert KEY_1 not in log_text
+        assert SECRET_1 not in log_text
         assert "1111111111" not in log_text
         assert "2222222222" not in log_text
         assert "nh_account_1" not in log_text.lower()

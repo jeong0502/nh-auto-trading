@@ -13,9 +13,13 @@ services:
         value: https://api.nhplug.com:8443
       - key: NH_DRY_RUN
         value: true
-      - key: NHPLUG_APP_KEY
+      - key: NHPLUG_APP_KEY_1
         sync: false
-      - key: NHPLUG_APP_SECRET
+      - key: NHPLUG_APP_SECRET_1
+        sync: false
+      - key: NHPLUG_APP_KEY_2
+        sync: false
+      - key: NHPLUG_APP_SECRET_2
         sync: false
       - key: NH_ACCOUNT_1
         sync: false

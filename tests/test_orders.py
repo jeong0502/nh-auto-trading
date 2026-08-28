@@ -271,6 +271,8 @@ class TestCallFormat:
 
 class TestSensitiveLogging:
     def test_logs_do_not_expose_secrets(self, caplog, kr_buy_payload, us_sell_payload):
+        from tests.conftest import KEY_1, KEY_2, SECRET_1, SECRET_2
+
         import logging
 
         caplog.set_level(logging.INFO, logger="app.orders")
@@ -280,8 +282,10 @@ class TestSensitiveLogging:
             _run_webhook("API2", "API2", {**us_sell_payload, "qty": 11})
 
         log_text = caplog.text.lower()
-        assert "test_app_key_secret_value" not in log_text
-        assert "test_app_secret_secret_value" not in log_text
+        assert KEY_1.lower() not in log_text
+        assert SECRET_1.lower() not in log_text
+        assert KEY_2.lower() not in log_text
+        assert SECRET_2.lower() not in log_text
         assert "1111111111" not in log_text
         assert "2222222222" not in log_text
         assert "nh_account_1" not in log_text
