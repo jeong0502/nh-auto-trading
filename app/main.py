@@ -20,7 +20,7 @@ logging.basicConfig(
 app = FastAPI(title="NH Auto Trading", version="0.1.0")
 
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 def health():
     return {"status": "ok"}
 

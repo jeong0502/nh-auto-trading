@@ -20,10 +20,15 @@ def clear_duplicate_cache():
 
 
 class TestHealth:
-    def test_health_returns_ok(self):
+    def test_health_get_returns_ok(self):
         response = client.get("/health")
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
+
+    def test_health_head_returns_200(self):
+        response = client.head("/health")
+        assert response.status_code == 200
+        assert response.content == b""
 
 
 class TestWebhookApi1:
