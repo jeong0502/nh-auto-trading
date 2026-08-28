@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: nh-auto-trading
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: NHPLUG_BASE_URL
+        value: https://moapi.nhplug.com:8443
+      - key: NHPLUG_AUTH_URL
+        value: https://api.nhplug.com:8443
+      - key: NH_DRY_RUN
+        value: true
+      - key: NHPLUG_APP_KEY
+        sync: false
+      - key: NHPLUG_APP_SECRET
+        sync: false
+      - key: NH_ACCOUNT_1
+        sync: false
+      - key: NH_ACCOUNT_2
+        sync: false
