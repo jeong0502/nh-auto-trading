@@ -50,6 +50,13 @@ class TestMaskAccount:
         assert mask_account_no("12345678901") == "12345678***"
         assert mask_account_no("123") == "***"
 
+    def test_mask_account_tail(self):
+        from app.accounts import mask_account_tail
+
+        assert mask_account_tail("20101036881") == "*******6881"
+        assert mask_account_tail("1234") == "***"
+        assert mask_account_tail("12345") == "*2345"
+
 
 class TestMockAccountValidation:
     def test_mock_acct_type_03_valid(self, mock_env):

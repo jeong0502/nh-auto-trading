@@ -141,8 +141,8 @@ def build_input_0(
             "ahi_nmn_pr_tp_cd": "03",
         }
         if side == "BUY":
-            # openapi.json 권장값이 아닌 1차 모의투자 테스트 선택값
-            input_0["wtm_cur_knd_cd"] = "2"
+            # wtm_cur_knd_cd: 1=해당통화(미국=USD), 2=원화 — 보유 USD로 매수
+            input_0["wtm_cur_knd_cd"] = "1"
         return input_0
 
     raise WebhookValidationError(f"Unsupported market: {market}")

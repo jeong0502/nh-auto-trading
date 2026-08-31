@@ -99,7 +99,7 @@ class TestValidOrders:
             "iem_cd": "SOXL",
             "orr_qty": 10,
             "ahi_nmn_pr_tp_cd": "03",
-            "wtm_cur_knd_cd": "2",
+            "wtm_cur_knd_cd": "1",
         }
         assert "fc_orr_uit_pr" not in input_0
         assert mock_call.call_count == 0
@@ -300,4 +300,4 @@ class TestUsSellNoWtmCur:
 
     def test_us_buy_input_has_wtm_cur_knd_cd(self):
         input_0 = build_input_0(market="US", side="BUY", ticker="SOXL", qty=10, country_code="200")
-        assert input_0["wtm_cur_knd_cd"] == "2"
+        assert input_0["wtm_cur_knd_cd"] == "1"

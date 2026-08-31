@@ -29,6 +29,14 @@ def mask_account_no(acct_no: str) -> str:
     return acct_no[:-3] + "***"
 
 
+def mask_account_tail(acct_no: str, visible: int = 4) -> str:
+    """계좌번호 마스킹 — 마지막 visible 자리만 표시 (예: *******6881)."""
+    s = (acct_no or "").strip()
+    if len(s) <= visible:
+        return "***"
+    return "*" * (len(s) - visible) + s[-visible:]
+
+
 def authenticate_for(label: str) -> None:
     """사용자별 get_token() (토큰 값은 반환·로그하지 않음)."""
     with nhplug_credentials(label):
@@ -144,6 +152,7 @@ __all__ = [
     "authenticate_for",
     "fetch_account_list_for",
     "mask_account_no",
+    "mask_account_tail",
     "validate_acct_type",
     "validate_account_for",
     "validate_all_configured_accounts",
